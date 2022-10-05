@@ -684,6 +684,9 @@ typedef DefinitionsJson = {
 	/** All internal enums **/
 	var enums : Array<EnumDefJson>;
 
+	/** All internal pokemons **/
+	var pokemons :Array<PokemonDefJson>;
+
 	/** All custom fields available to all levels. **/
 	@added("0.8.0")
 	var levelFields : Array<FieldDefJson>;
@@ -1227,6 +1230,16 @@ typedef TilesetDefJson = {
 }
 
 
+
+@section("3.4")
+@display("Pokemon definition")
+typedef PokemonDefJson = {
+	/** Unique Int identifier **/
+	var id: Int;
+
+	/** User defined unique identifier **/
+	var name: String;
+};
 
 @section("3.4")
 @display("Enum definition")
