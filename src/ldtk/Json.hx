@@ -1234,10 +1234,10 @@ typedef TilesetDefJson = {
 @section("3.4")
 @display("Pokemon definition")
 typedef PokemonDefJson = {
-	/** Unique Int identifier **/
+	/** Unique Int id **/
 	var id: Int;
 
-	/** User defined unique identifier **/
+	/** User defined unique name **/
 	var name: String;
 };
 
