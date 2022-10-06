@@ -1230,17 +1230,6 @@ typedef TilesetDefJson = {
 }
 
 
-
-@section("3.4")
-@display("Pokemon definition")
-typedef PokemonDefJson = {
-	/** Unique Int id **/
-	var id: Int;
-
-	/** User defined unique name **/
-	var name: String;
-};
-
 @section("3.4")
 @display("Enum definition")
 typedef EnumDefJson = {
@@ -1284,6 +1273,17 @@ typedef EnumDefValues = {
 	@added("0.4.0")
 	var __tileSrcRect:Null< Array<Int> >; // TODO use a Tile instance here?
 }
+
+@section("3.5")
+@display("Pokemon definition")
+typedef PokemonDefJson = {
+	/** Unique Int id **/
+	var id: Int;
+
+	/** User defined unique name **/
+	var name: String;
+};
+
 
 
 
