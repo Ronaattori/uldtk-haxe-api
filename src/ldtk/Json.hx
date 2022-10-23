@@ -1279,7 +1279,7 @@ typedef EnumDefValues = {
 typedef TableDefJson = {
 
 	/** Name of the database **/
-	var name: String
+	var name: String;
 
 	/** The actual database **/
 	var data: Map<String, Array<String>>;
