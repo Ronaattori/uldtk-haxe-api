@@ -1281,8 +1281,11 @@ typedef TableDefJson = {
 	/** Name of the database **/
 	var name: String;
 
+	/** The columns of the database **/
+	var columns: Array<String>;
+
 	/** The actual database **/
-	var data: Map<String, Array<String>>;
+	var data: Array<Array<Dynamic>>;
 };
 
 
