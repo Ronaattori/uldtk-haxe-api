@@ -1277,6 +1277,8 @@ typedef EnumDefValues = {
 @section("3.5")
 @display("Table definition")
 typedef TableDefJson = {
+	/** Unique Int identifier **/
+	var uid: Int;
 
 	/** Name of the database **/
 	var name: String;
