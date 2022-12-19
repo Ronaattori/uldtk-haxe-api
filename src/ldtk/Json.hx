@@ -1457,6 +1457,8 @@ enum FieldType {
 
 	@added("1.0.0")
 	F_Tile;
+
+	F_Table(tableDefUid:Int);
 }
 
 
