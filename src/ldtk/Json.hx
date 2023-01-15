@@ -1283,6 +1283,9 @@ typedef TableDefJson = {
 	/** Name of the database **/
 	var name: String;
 
+	/** Primary key, a value from columns**/
+	var primaryKey: String;
+
 	/** The columns of the database **/
 	var columns: Array<String>;
 
