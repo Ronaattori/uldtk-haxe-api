@@ -75,6 +75,8 @@ class Project {
 	/** Internal asset cache to avoid reloading of previously loaded data. **/
 	var assetCache : Map<String, haxe.io.Bytes>; // TODO support hot reloading
 
+	var _untypedToc : Map<String, Array<ldtk.Json.EntityReferenceInfos>>;
+
 
 	function new() {}
 
@@ -86,12 +88,17 @@ class Project {
 	public function parseJson(jsonString:String) {
 		// Init
 		_untypedTilesets = new Map();
+		_untypedToc = new Map();
 		assetCache = new Map();
 
 		// Parse json
 		var json : Dynamic = haxe.Json.parse(jsonString);
+
+		// Init misc fields
+		defs = json.defs;
 		bgColor_hex = json.bgColor;
 		bgColor_int = ldtk.Project.hexToInt(json.bgColor);
+		worldLayout = WorldLayout.createByName( Std.string(json.worldLayout) );
 
 		// Populate levels
 		_untypedLevels = [];
@@ -106,9 +113,18 @@ class Project {
 			Reflect.setField( Reflect.field(this,"all_tilesets"), tsJson.identifier, _instanciateTileset(this, tsJson));
 		}
 
-		// Init misc fields
-		worldLayout = WorldLayout.createByName( Std.string(json.worldLayout) );
-		defs = json.defs;
+		// Empty toc
+		var classToc : Dynamic = Reflect.field(this,"toc");
+		for( k in Reflect.fields(classToc) )
+			Reflect.setField(classToc, k, []);
+
+		// Populate toc
+		if( json.toc!=null ) {
+			var jsonToc : Array<ldtk.Json.TableOfContentEntry> = json.toc;
+			for(te in jsonToc)
+				if( Reflect.hasField(classToc, te.identifier) )
+					Reflect.setField(classToc, te.identifier, te.instances.copy());
+		}
 	}
 
 
@@ -396,7 +412,7 @@ class Project {
 	/**
 		Get a Layer definition using either its uid (Int) or identifier (String)
 	**/
-	public inline function getLayerDefJson(?uid:Int, ?identifier:String) : Null<ldtk.Json.LayerDefJson> {
+	public function getLayerDefJson(?uid:Int, ?identifier:String) : Null<ldtk.Json.LayerDefJson> {
 		return searchDef( defs.layers, uid, identifier );
 	}
 	@:noCompletion @:deprecated("Method was renamed to: getLayerDefJson")

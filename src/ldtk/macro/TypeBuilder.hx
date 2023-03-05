@@ -79,6 +79,7 @@ class TypeBuilder {
 		createLevelClass();
 		createLevelAccess();
 		createTilesetAccess();
+		createProjectToc();
 		createProjectClass();
 
 		haxe.macro.Compiler.keep( Context.getLocalModule() );
@@ -588,7 +589,7 @@ class TypeBuilder {
 			switch type {
 				case IntGrid:
 
-					if( l.autoTilesetDefUid==null ) {
+					if( l.tilesetDefUid==null ) {
 						// IntGrid
 						var parentTypePath : TypePath = { pack: [APP_PACKAGE], name:"Layer_IntGrid" }
 						var layerType : TypeDefinition = {
@@ -616,8 +617,11 @@ class TypeBuilder {
 					}
 					else {
 						// Auto-layer IntGrid
+						if( l.tilesetDefUid==null || !tilesets.exists(l.tilesetDefUid) )
+							error('Missing tileset in layer "${l.identifier}"');
+
 						var parentTypePath : TypePath = { pack: [APP_PACKAGE], name:"Layer_IntGrid_AutoLayer" }
-						var tilesetCT = Context.getType( tilesets.get(l.autoTilesetDefUid).typeName ).toComplexType();
+						var tilesetCT = Context.getType( tilesets.get(l.tilesetDefUid).typeName ).toComplexType();
 
 						var layerType : TypeDefinition = {
 							pos : curPos,
@@ -650,8 +654,11 @@ class TypeBuilder {
 
 				case AutoLayer:
 					// Pure Auto-layer
+					if( l.tilesetDefUid==null || !tilesets.exists(l.tilesetDefUid) )
+						error('Missing tileset in layer "${l.identifier}"');
+
 					var parentTypePath : TypePath = { pack: [APP_PACKAGE], name:"Layer_AutoLayer" }
-					var tilesetCT = Context.getType( tilesets.get(l.autoTilesetDefUid).typeName ).toComplexType();
+					var tilesetCT = Context.getType( tilesets.get(l.tilesetDefUid).typeName ).toComplexType();
 
 					var layerType : TypeDefinition = {
 						pos : curPos,
@@ -679,6 +686,9 @@ class TypeBuilder {
 					// Typed Entity arrays
 					var entityArrayFields : Array<Field> = [];
 					for(e in json.defs.entities) {
+						if( !matchesTags(e.tags, l.requiredTags, l.excludedTags) )
+							continue;
+
 						var entityComplexType = Context.getType("Entity_"+e.identifier).toComplexType();
 						entityArrayFields.push({
 							name: "all_"+e.identifier,
@@ -726,6 +736,9 @@ class TypeBuilder {
 
 
 				case Tiles:
+					if( l.tilesetDefUid==null || !tilesets.exists(l.tilesetDefUid) )
+						error('Missing default tileset in layer "${l.identifier}"');
+
 					var parentTypePath : TypePath = { pack: [APP_PACKAGE], name:"Layer_Tiles" }
 					var tilesetCT = Context.getType( tilesets.get(l.tilesetDefUid).typeName ).toComplexType();
 					var layerType : TypeDefinition = {
@@ -751,6 +764,30 @@ class TypeBuilder {
 					error("Unknown layer type "+l.type);
 			}
 		}
+	}
+
+
+	static function matchesTags(elementTags:Array<String>, requireds:Array<String>, excludeds:Array<String>) : Bool {
+		var tmap = new Map();
+		for(t in elementTags)
+			tmap.set(t,t);
+
+		if( requireds.length>0 ) {
+			var hasOne = false;
+			for(t in requireds)
+				if( tmap.exists(t) ) {
+					hasOne = true;
+					break;
+				}
+			if( !hasOne )
+				return false;
+		}
+
+		for(t in excludeds)
+			if( tmap.exists(t) )
+				return false;
+
+		return true;
 	}
 
 
@@ -895,6 +932,36 @@ class TypeBuilder {
 	}
 
 
+	/**
+		Create the `toc` anonymous structure in Project main class.
+		It is populated in Project.parseJson()
+	**/
+	static function createProjectToc() {
+		timer("projectToc");
+		var jsonToc = json.toc==null ? []  : json.toc;
+		var accessType : ComplexType = TAnonymous(json.defs.entities.map( function(ed) : Field {
+			return {
+				name: ed.identifier,
+				kind: FVar(macro : Array<ldtk.Json.EntityReferenceInfos>),
+				pos: curPos,
+			}
+		}));
+		var accessFields: Array<ObjectField> = json.defs.entities.map( function(ed) {
+			return {
+				field: ed.identifier,
+				expr: macro [],
+				quotes: null,
+			}
+		});
+		projectFields.push({
+			name: "toc",
+			doc: "This table of content contains the list of all elements whose 'Add to table of content' option is enabled.",
+			kind: FVar(accessType, { expr:EObjectDecl(accessFields), pos:curPos }),
+			pos: curPos,
+			access: [ APublic ],
+		});
+	}
+
 
 	/**
 		Create main Project class
@@ -952,12 +1019,12 @@ class TypeBuilder {
 				}
 
 				/** Get a level from its UID (int) or Identifier (string) **/
-				public function getLevel(?uid:Int, ?id:String) : Null<$levelComplexType> {
-					if( uid==null && id==null )
+				public function getLevel(?uid:Int, ?idOrIid:String) : Null<$levelComplexType> {
+					if( uid==null && idOrIid==null )
 						return null;
 
 					for(l in _untypedLevels)
-						if( id!=null && l.identifier==id || uid!=null && l.uid==uid )
+						if( idOrIid!=null && ( l.identifier==idOrIid || l.iid==idOrIid ) || uid!=null && l.uid==uid )
 							return cast l;
 					return null;
 				}
