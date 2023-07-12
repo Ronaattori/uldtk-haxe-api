@@ -67,6 +67,9 @@ typedef ProjectJson = {
 
 	/** A structure containing all the definitions of this project **/
 	var defs: DefinitionsJson;
+	
+	/** The projects CastleDB database **/
+	var database: Null<cdb.Database>;
 
 	/**
 		All levels. The order of this array is only relevant in `LinearHorizontal` and `linearVertical` world layouts (see `worldLayout` value).
@@ -714,9 +717,6 @@ typedef DefinitionsJson = {
 
 	/** All internal enums **/
 	var enums : Array<EnumDefJson>;
-
-	/** All internal tables **/
-	var tables : Array<TableDefJson>;
 
 	/** All custom fields available to all levels. **/
 	@added("0.8.0")
@@ -1412,28 +1412,6 @@ typedef EnumDefValues = {
 	var __tileSrcRect:Null< Array<Int> >; // TODO use a Tile instance here?
 }
 
-@section("3.5")
-@display("Table definition")
-typedef TableDefJson = {
-	/** Unique Int identifier **/
-	var uid: Int;
-
-	/** Name of the database **/
-	var name: String;
-
-	/** Primary key, a value from columns**/
-	var primaryKey: String;
-
-	/** The columns of the database **/
-	var columns: Array<String>;
-
-	/** The actual database **/
-	var data: Array<Array<Dynamic>>;
-};
-
-
-
-
 /* INLINED TYPES *****************************************************************************/
 
 /** Nearby level info **/
@@ -1621,7 +1599,7 @@ enum FieldType {
 	@added("1.0.0")
 	F_Tile;
 
-	F_Table(tableDefUid:Int);
+	F_Sheet(sheetName:String);
 }
 
 
