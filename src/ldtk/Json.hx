@@ -69,7 +69,7 @@ typedef ProjectJson = {
 	var defs: DefinitionsJson;
 	
 	/** The projects CastleDB database **/
-	var database: Null<cdb.Data.Data>;
+	var database: Null<String>;
 
 	/**
 		All levels. The order of this array is only relevant in `LinearHorizontal` and `linearVertical` world layouts (see `worldLayout` value).
