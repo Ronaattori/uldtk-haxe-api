@@ -128,6 +128,16 @@ If you want to start supporting this future update easily, please refer to this 
 	@internal
 	var defaultGridSize: Int;
 
+	/** Default width for new entities **/
+	@added("1.3.4")
+	@internal
+	var defaultEntityWidth: Int;
+
+	/** Default height for new entities **/
+	@added("1.3.4")
+	@internal
+	var defaultEntityHeight: Int;
+
 	/** Project background color **/
 	@color
 	var bgColor: String;
@@ -356,11 +366,11 @@ typedef LevelJson = {
 	var externalRelPath: Null<String>;
 
 	/**
-		An array listing all other levels touching this one on the world map.
+		An array listing all other levels touching this one on the world map. Since 1.4.0, this includes levels that overlap in the same world layer, or in nearby world layers.
 		Only relevant for world layouts where level spatial positioning is manual (ie. GridVania, Free). For Horizontal and Vertical layouts, this array is always empty.
 	**/
 	@added("0.6.0")
-	@changed("1.0.0")
+	@changed("1.4.0")
 	var __neighbours: Array<NeighbourLevel>;
 
 	/**
@@ -524,7 +534,7 @@ typedef LayerInstanceJson = {
 /**
 	This structure represents a single tile from a given Tileset.
 **/
-@section("2.2")
+@section("2.1.1")
 @added("0.4.0")
 @display("Tile instance")
 typedef Tile = {
@@ -594,7 +604,7 @@ typedef TilesetRect = {
 }
 
 
-@section("2.3")
+@section("2.2")
 @display("Entity instance")
 typedef EntityInstanceJson = {
 	/** Entity definition identifier **/
@@ -611,6 +621,14 @@ typedef EntityInstanceJson = {
 	/** Array of tags defined in this Entity definition **/
 	@added("1.0.0")
 	var __tags: Array<String>;
+
+	/** X world coordinate in pixels **/
+	@added("1.3.4")
+	var __worldX: Int;
+
+	/** Y world coordinate in pixels **/
+	@added("1.3.4")
+	var __worldY: Int;
 
 	/** Entity width in pixels. For non-resizable entities, it will be the same as Entity definition. **/
 	@added("0.8.0")
@@ -652,7 +670,7 @@ typedef EntityInstanceJson = {
 
 
 
-@section("2.4")
+@section("2.3")
 @display("Field instance")
 typedef FieldInstanceJson = {
 	/** Field definition identifier **/
@@ -828,6 +846,11 @@ typedef LayerDefJson = {
 	@only("IntGrid layer")
 	var intGridValues: Array<IntGridValueDef>;
 
+	/** Group informations for IntGrid values **/
+	@changed("1.4.0")
+	@only("IntGrid layer")
+	var intGridValuesGroups: Array<IntGridValueGroupDef>;
+
 	/**
 		Reference to the Tileset UID being used by this auto-layer rules. WARNING: some layer *instances* might use a different tileset. So most of the time, you should probably use the `__tilesetDefUid` value from layer instances.
 	**/
@@ -879,8 +902,17 @@ typedef LayerDefJson = {
 typedef AutoLayerRuleGroupJson = {
 	var uid: Int;
 	var name: String;
+
+	@added("1.4.0")
+	var ?color: String;
+
+	@added("1.4.0")
+	var ?icon: Null<TilesetRect>;
+
 	var active: Bool;
+
 	var rules: Array<AutoRuleDef>;
+
 	@added("0.9.0")
 	var isOptional: Bool;
 
@@ -1102,6 +1134,12 @@ typedef EntityDefJson = {
 	var tileRect: Null<TilesetRect>;
 
 	/**
+		This tile overrides the one defined in `tileRect` in the UI
+	**/
+	@added("1.4.0")
+	var uiTileRect: Null<TilesetRect>;
+
+	/**
 		An enum describing how the the Entity tile is rendered inside the Entity bounds.
 	**/
 	@changed("0.8.1")
@@ -1214,6 +1252,10 @@ typedef FieldDefJson = {
 	@added("1.1.4")
 	@internal
 	var editorLinkStyle: FieldLinkStyle;
+
+	@added("1.3.4")
+	@internal
+	var editorDisplayColor: Null<String>;
 
 	@internal
 	var editorDisplayPos: FieldDisplayPosition;
@@ -1400,7 +1442,7 @@ typedef EnumDefValues = {
 
 	/** The optional ID of the tile **/
 	@deprecation("1.3.0", "1.4.0", "tileRect")
-	var tileId:Null<Int>;
+	var ?tileId:Null<Int>;
 
 	/** Optional color **/
 	@added("0.9.0")
@@ -1409,7 +1451,7 @@ typedef EnumDefValues = {
 	/** An array of 4 Int values that refers to the tile in the tileset image: `[ x, y, width, height ]` **/
 	@deprecation("1.3.0", "1.4.0", "tileRect")
 	@added("0.4.0")
-	var __tileSrcRect:Null< Array<Int> >; // TODO use a Tile instance here?
+	var ?__tileSrcRect:Null< Array<Int> >;
 }
 
 /* INLINED TYPES *****************************************************************************/
@@ -1425,7 +1467,11 @@ typedef NeighbourLevel = {
 	@deprecation("1.0.0", "1.2.0", "levelIid")
 	var ?levelUid: Int;
 
-	/** A single lowercase character tipping on the level location (`n`orth, `s`outh, `w`est, `e`ast). **/
+	/**
+		A single lowercase character tipping on the level location (`n`orth, `s`outh, `w`est, `e`ast).
+		Since 1.4.0, this character value can also be `<` (neighbour depth is lower), `>` (neighbour depth is greater) or `o` (levels overlap and share the same world depth).
+	**/
+	@changed("1.4.0")
 	var dir: String;
 }
 
@@ -1472,7 +1518,28 @@ typedef IntGridValueDef = {
 
 	@added("1.3.3")
 	var tile : Null<ldtk.Json.TilesetRect>;
+
+	/** Parent group identifier (0 if none)**/
+	@added("1.4.0")
+	var groupUid: Int;
 }
+
+
+/** IntGrid value group definition **/
+@inline
+@display("IntGrid value group definition")
+@added("1.4.0")
+typedef IntGridValueGroupDef = {
+	/** Group unique ID **/
+	var uid: Int;
+
+	/** User defined string identifier **/
+	var identifier: Null<String>;
+
+	/** User defined color **/
+	var color: Null<String>;
+}
+
 
 /** In a tileset definition, enum based tag infos **/
 @inline
@@ -1493,7 +1560,7 @@ typedef TileCustomMetadata = {
 }
 
 /** This object describes the "location" of an Entity instance in the project worlds. **/
-@section("2.4.2")
+@section("2.3.1")
 @added("1.0.0")
 @display("Reference to an Entity instance")
 typedef EntityReferenceInfos = {
@@ -1517,7 +1584,7 @@ typedef EntityReferenceInfos = {
 /**
 	This object is just a grid-based coordinate used in Field values.
 **/
-@section("2.4.3")
+@section("2.3.2")
 @added("1.0.0")
 @display("Grid point")
 typedef GridPoint = {
